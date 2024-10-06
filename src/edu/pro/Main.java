@@ -13,57 +13,43 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+    // Метод для очищення тексту і приведення його до нижнього регістру
     public static String cleanText(String url) throws IOException {
-        String content = new String(Files.readAllBytes(Paths.get(url)));
-        content = content.replaceAll("[^A-Za-z ]"," ").toLowerCase(Locale.ROOT);
-        return content;
+        // Використовуємо StringBuilder для ефективнішого маніпулювання рядками
+        StringBuilder content = new StringBuilder(new String(Files.readAllBytes(Paths.get(url))));
+        // Замінюємо всі символи, які не є літерами, на пробіли
+        return content.toString().replaceAll("[^A-Za-z ]", " ").toLowerCase(Locale.ROOT);
+    }
+
+    // Метод для підрахунку частоти кожного слова
+    public static Map<String, Integer> countWordFrequencies(String[] words) {
+        Map<String, Integer> wordFrequencies = new HashMap<>();
+        for (String word : words) {
+            wordFrequencies.put(word, wordFrequencies.getOrDefault(word, 0) + 1);
+        }
+        return wordFrequencies;
     }
 
     public static void main(String[] args) throws IOException {
 
         LocalDateTime start = LocalDateTime.now();
-       // Path path = Paths.get()
-        String content = new String(Files.readAllBytes(Paths.get("src/edu/pro/txt/harry.txt")));
+        String content = cleanText("src/edu/pro/txt/harry.txt"); // Використання методу для очищення тексту
 
-        content = content.replaceAll("[^A-Za-z ]"," ").toLowerCase(Locale.ROOT);
+        String[] words = content.split(" +"); // 400 000 слів, поділених пробілами
 
-        String[] words = content.split(" +"); // 400 000
+        Map<String, Integer> wordFrequencies = countWordFrequencies(words); // Підрахунок частот слів
 
-        Arrays.sort(words);
+        // Сортуємо карту за частотою слів
+        List<Map.Entry<String, Integer>> sortedEntries = wordFrequencies.entrySet()
+                .stream()
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+                .collect(Collectors.toList());
 
-        String distinctString = " ";
+        // Виводимо топ-30 найбільш частих слів
+        sortedEntries.stream().limit(30).forEach(entry -> 
+                System.out.println(entry.getKey() + " " + entry.getValue()));
 
-        for (int i = 0; i < words.length ; i++) {
-            if (!distinctString.contains(words[i])){
-                distinctString+= words[i] + " ";
-            }
-        }
-
-        String[] distincts = distinctString.split(" ");
-        int[] freq = new int[distincts.length];
-
-        for (int i = 0; i < distincts.length ; i++) {
-            int count = 0;
-            for (int j = 0; j < words.length ; j++) {
-                if (distincts[i].equals(words[j])) {
-                    count++;
-                }
-            }
-            freq[i] = count;
-        }
-
-        for (int i = 0; i < distincts.length ; i++) { // 5 000
-            distincts[i] += " " + freq[i];
-        }
-
-        Arrays.sort(distincts, Comparator.comparing(str
-                -> Integer.valueOf(str.replaceAll("[^0-9]", ""))));
-
-        for (int i = 0; i < 30; i++) {
-            System.out.println(distincts[distincts.length - 1 - i]);
-        }
         LocalDateTime finish = LocalDateTime.now();
-
         System.out.println("------");
         System.out.println(ChronoUnit.MILLIS.between(start, finish));
 
