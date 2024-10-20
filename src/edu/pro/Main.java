@@ -5,10 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -22,50 +19,34 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         LocalDateTime start = LocalDateTime.now();
-       // Path path = Paths.get()
-        String content = new String(Files.readAllBytes(Paths.get("src/edu/pro/txt/harry.txt")));
 
-        content = content.replaceAll("[^A-Za-z ]"," ").toLowerCase(Locale.ROOT);
+        // Використання StringBuilder для уникнення конкатенації рядків
+        StringBuilder contentBuilder = new StringBuilder(new String(Files.readAllBytes(Paths.get("src/edu/pro/txt/harry.txt"))));
 
-        String[] words = content.split(" +"); // 400 000
+        String content = contentBuilder.toString().replaceAll("[^A-Za-z ]"," ").toLowerCase(Locale.ROOT);
 
-        Arrays.sort(words);
+        // Використання HashMap для ефективного підрахунку частот
+        String[] words = content.split(" +");
+        Map<String, Integer> wordCountMap = new HashMap<>();
 
-        String distinctString = " ";
-
-        for (int i = 0; i < words.length ; i++) {
-            if (!distinctString.contains(words[i])){
-                distinctString+= words[i] + " ";
-            }
+        for (String word : words) {
+            wordCountMap.put(word, wordCountMap.getOrDefault(word, 0) + 1);
         }
 
-        String[] distincts = distinctString.split(" ");
-        int[] freq = new int[distincts.length];
+        // Створення List з Map.Entry для сортування
+        List<Map.Entry<String, Integer>> sortedEntries = wordCountMap.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue(Collections.reverseOrder()))
+                .collect(Collectors.toList());
 
-        for (int i = 0; i < distincts.length ; i++) {
-            int count = 0;
-            for (int j = 0; j < words.length ; j++) {
-                if (distincts[i].equals(words[j])) {
-                    count++;
-                }
-            }
-            freq[i] = count;
+        // Виведення топ-30 слів
+        for (int i = 0; i < Math.min(30, sortedEntries.size()); i++) {
+            Map.Entry<String, Integer> entry = sortedEntries.get(i);
+            System.out.println(entry.getKey() + " " + entry.getValue());
         }
 
-        for (int i = 0; i < distincts.length ; i++) { // 5 000
-            distincts[i] += " " + freq[i];
-        }
-
-        Arrays.sort(distincts, Comparator.comparing(str
-                -> Integer.valueOf(str.replaceAll("[^0-9]", ""))));
-
-        for (int i = 0; i < 30; i++) {
-            System.out.println(distincts[distincts.length - 1 - i]);
-        }
         LocalDateTime finish = LocalDateTime.now();
-
         System.out.println("------");
         System.out.println(ChronoUnit.MILLIS.between(start, finish));
-
     }
 }
